@@ -3,21 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>EcoNexus - Admin Seguro</title>
+  <title>EcoNexus - Admin Central</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
-  <!-- Gate Autenticación -->
+  
   <div id="authGate" class="fixed inset-0 bg-slate-950 z-[100] flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-amber-500/30 p-8 rounded-2xl max-w-sm w-full shadow-2xl text-center space-y-5">
       <div class="w-14 h-14 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-2xl mx-auto">👑</div>
       <h2 class="text-xl font-bold">Panel Admin EcoNexus</h2>
-      <p class="text-xs text-slate-400">Acceso protegido mediante RLS y Roles Supabase.</p>
-      <button onclick="loginGoogle()" class="w-full bg-white hover:bg-slate-100 text-slate-900 font-bold py-3 rounded-xl transition flex items-center justify-center gap-2 text-sm">
+      <p class="text-xs text-slate-400">Acceso protegido mediante RLS y Roles en PostgreSQL.</p>
+      <button onclick="loginGoogle()" class="w-full bg-white hover:bg-slate-200 text-slate-900 font-bold py-3 rounded-xl transition text-sm">
         Iniciar Sesión con Google
       </button>
-      <p id="msgError" class="text-xs text-red-400 hidden"></p>
+      <p id="msgError" class="text-xs text-red-400 hidden p-2 bg-red-500/10 rounded-lg border border-red-500/20"></p>
     </div>
   </div>
 
@@ -31,134 +31,112 @@
   <main class="max-w-6xl mx-auto p-4 space-y-6 mt-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
       <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-        <h2 class="text-xl font-bold">Control General de Inmuebles</h2>
+        <h2 class="text-xl font-bold">Control General (Superusuario)</h2>
         <input type="text" id="buscadorAdmin" oninput="buscarServerSide()" placeholder="🔍 Buscar por código o título..." class="w-full md:w-80 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs outline-none focus:border-amber-400">
       </div>
+      
       <div id="tablaInmueblesAdmin" class="space-y-3">
-        <div class="text-center py-8 text-slate-500 text-sm">Verificando credenciales RLS...</div>
+        <div class="text-center py-8 text-slate-500 text-sm">Validando tu Rango (Role)...</div>
       </div>
-      <!-- Paginación Server-Side -->
-      <div class="flex justify-between items-center pt-4 border-t border-slate-800 text-xs text-slate-400">
-        <button id="btnPrev" onclick="cambiarPagina(-1)" class="px-3 py-1.5 bg-slate-800 rounded-lg hover:bg-slate-700 disabled:opacity-50" disabled>Anterior</button>
+
+      <div class="flex justify-between items-center pt-4 border-t border-slate-800 text-xs text-slate-400 font-bold">
+        <button id="btnPrev" onclick="cambiarPagina(-1)" class="px-4 py-2 bg-slate-800 rounded-lg hover:bg-slate-700 transition disabled:opacity-50" disabled>Anterior</button>
         <span id="labelPagina">Página 1</span>
-        <button id="btnNext" onclick="cambiarPagina(1)" class="px-3 py-1.5 bg-slate-800 rounded-lg hover:bg-slate-700">Siguiente</button>
+        <button id="btnNext" onclick="cambiarPagina(1)" class="px-4 py-2 bg-slate-800 rounded-lg hover:bg-slate-700 transition">Siguiente</button>
       </div>
     </div>
   </main>
 
   <script>
-    const SUPABASE_URL = 'https://gvcklmqldswxfweliuio.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_Yu3I-FpcjU44dHsPs9pPDQ_9TEC9fKa';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    
+    const supabase = window.supabase.createClient('https://gvcklmqldswxfweliuio.supabase.co', 'sb_publishable_Yu3I-FpcjU44dHsPs9pPDQ_9TEC9fKa');
     let paginaActual = 0;
-    const LIMITE_PAGINA = 15;
+    const LIMITE = 15;
+    let timerDebounce;
 
-    async function loginGoogle() {
-      await supabaseClient.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: window.location.href }
-      });
-    }
-
-    async function logout() {
-      await supabaseClient.auth.signOut();
-      window.location.reload();
-    }
+    async function loginGoogle() { await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } }); }
+    async function logout() { await supabase.auth.signOut(); window.location.reload(); }
 
     async function verificarAdmin() {
-      const { data: { session } } = await supabaseClient.auth.getSession();
+      const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
 
-      const { data: profile, error } = await supabaseClient
-        .from('profiles')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (error || !profile || profile.role !== 'admin') {
-        document.getElementById('msgError').textContent = '⚠️ Acceso denegado: No tienes el rol de Administrador.';
-        document.getElementById('msgError').classList.remove('hidden');
+      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+      
+      if (!profile || profile.role !== 'admin') {
+        const msg = document.getElementById('msgError');
+        msg.textContent = '⛔ Acceso denegado: Base de datos informa que tu cuenta es Rango "agente", no "admin".';
+        msg.classList.remove('hidden');
+        await supabase.auth.signOut();
         return;
       }
-
+      
       document.getElementById('authGate').classList.add('hidden');
       cargarInmueblesPaginados();
     }
 
     async function cargarInmueblesPaginados() {
       const queryBusqueda = document.getElementById('buscadorAdmin').value.trim();
-      const from = paginaActual * LIMITE_PAGINA;
-      const to = from + LIMITE_PAGINA - 1;
+      const from = paginaActual * LIMITE;
+      const to = from + LIMITE - 1;
 
-      let consulta = supabaseClient
-        .from('inmuebles')
-        .select('id, codigo, titulo, precio, es_vip, es_verificado, nombre_asesor, created_at', { count: 'exact' })
-        .range(from, to)
-        .order('created_at', { ascending: false });
+      let consulta = supabase.from('inmuebles')
+        .select('id, codigo, titulo, precio, es_vip, es_verificado', { count: 'exact' })
+        .range(from, to).order('created_at', { ascending: false });
 
-      if (queryBusqueda) {
-        consulta = consulta.ilike('titulo', `%${queryBusqueda}%`);
-      }
+      if (queryBusqueda) consulta = consulta.ilike('titulo', `%${queryBusqueda}%`);
 
       const { data, count, error } = await consulta;
-
-      if (error) {
-        document.getElementById('tablaInmueblesAdmin').innerHTML = `<p class="text-red-400 text-xs">Error: ${error.message}</p>`;
-        return;
-      }
-
+      if (error) return document.getElementById('tablaInmueblesAdmin').innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
+      
       renderizarTabla(data || []);
-      actualizarControlesPaginacion(count || 0);
+      actualizarPaginacion(count || 0);
     }
 
     function renderizarTabla(items) {
       const cont = document.getElementById('tablaInmueblesAdmin');
-      if (items.length === 0) {
-        cont.innerHTML = `<p class="text-center py-6 text-slate-500 text-xs">No hay inmuebles cargados.</p>`;
-        return;
-      }
+      if (items.length === 0) return cont.innerHTML = `<p class="text-center py-6 text-slate-500">No hay datos.</p>`;
+      
       cont.innerHTML = items.map(i => `
-        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex justify-between items-center">
-          <div>
-            <span class="font-bold text-emerald-400 text-sm">${i.codigo || 'S/C'}</span>
-            <h4 class="text-sm font-semibold text-slate-200">${i.titulo}</h4>
-            <p class="text-xs text-slate-500">$${Number(i.precio).toLocaleString()} • ${i.nombre_asesor || 'N/A'}</p>
+        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4">
+          <div class="text-center md:text-left">
+            <div class="flex items-center gap-2 justify-center md:justify-start">
+                <span class="font-bold text-emerald-400 text-sm">${i.codigo}</span>
+                ${i.es_vip ? '<span class="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded text-[10px]">VIP</span>' : ''}
+                ${i.es_verificado ? '<span class="bg-blue-500 text-white font-bold px-2 py-0.5 rounded text-[10px]">VERIFICADO</span>' : ''}
+            </div>
+            <h4 class="text-sm font-semibold text-slate-200 mt-1">${i.titulo}</h4>
+            <p class="text-xs text-slate-500">$${Number(i.precio).toLocaleString()}</p>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="eliminarAccion('${i.id}')" class="bg-red-500/10 text-red-400 hover:bg-red-500/20 text-xs px-3 py-1.5 rounded-lg border border-red-500/20">Borrar</button>
+          <div class="flex items-center gap-2 flex-wrap justify-center">
+            <button onclick="toggleAction('${i.id}', 'es_vip', ${!i.es_vip})" class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs px-3 py-2 rounded-lg font-bold">${i.es_vip ? 'Quitar VIP' : 'Dar VIP'}</button>
+            <button onclick="toggleAction('${i.id}', 'es_verificado', ${!i.es_verificado})" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-3 py-2 rounded-lg font-bold">${i.es_verificado ? 'Quitar Check' : 'Verificar'}</button>
+            <button onclick="eliminarAccion('${i.id}')" class="bg-red-500/10 text-red-400 hover:bg-red-500/30 text-xs px-3 py-2 rounded-lg font-bold">🗑️ Borrar</button>
           </div>
         </div>
       `).join('');
     }
 
-    function actualizarControlesPaginacion(totalCount) {
-      document.getElementById('btnPrev').disabled = paginaActual === 0;
-      document.getElementById('btnNext').disabled = (paginaActual + 1) * LIMITE_PAGINA >= totalCount;
-      document.getElementById('labelPagina').textContent = `Página ${paginaActual + 1} de ${Math.ceil(totalCount / LIMITE_PAGINA) || 1}`;
-    }
-
-    function cambiarPagina(delta) {
-      paginaActual += delta;
+    async function toggleAction(id, campo, valor) {
+      await supabase.from('inmuebles').update({ [campo]: valor }).eq('id', id);
       cargarInmueblesPaginados();
     }
 
-    let timerDebounce;
-    function buscarServerSide() {
-      clearTimeout(timerDebounce);
-      timerDebounce = setTimeout(() => {
-        paginaActual = 0;
-        cargarInmueblesPaginados();
-      }, 300);
-    }
-
     async function eliminarAccion(id) {
-      if (!confirm('¿Eliminar registro permanentemente?')) return;
-      const { error } = await supabaseClient.from('inmuebles').delete().eq('id', id);
-      if (!error) cargarInmueblesPaginados();
+      if (!confirm('¿Eliminar registro permanentemente (Bypass de Admin)?')) return;
+      await supabase.from('inmuebles').delete().eq('id', id);
+      cargarInmueblesPaginados();
     }
 
-    supabaseClient.auth.onAuthStateChange(() => verificarAdmin());
+    function actualizarPaginacion(totalCount) {
+      document.getElementById('btnPrev').disabled = paginaActual === 0;
+      document.getElementById('btnNext').disabled = (paginaActual + 1) * LIMITE >= totalCount;
+      document.getElementById('labelPagina').textContent = `Página ${paginaActual + 1} de ${Math.ceil(totalCount / LIMITE) || 1}`;
+    }
+
+    function cambiarPagina(delta) { paginaActual += delta; cargarInmueblesPaginados(); }
+    function buscarServerSide() { clearTimeout(timerDebounce); timerDebounce = setTimeout(() => { paginaActual = 0; cargarInmueblesPaginados(); }, 300); }
+
+    supabase.auth.onAuthStateChange(() => verificarAdmin());
     verificarAdmin();
   </script>
 </body>
