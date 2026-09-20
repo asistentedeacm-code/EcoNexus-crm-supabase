@@ -11,7 +11,7 @@
   <header class="border-b border-slate-800 bg-slate-900 sticky top-0 z-50 p-4">
     <div class="max-w-7xl mx-auto flex justify-between items-center">
       <h1 class="text-2xl font-black text-emerald-400">EcoNexus</h1>
-      <a href="index_captacion.html" class="bg-emerald-500 text-slate-950 text-xs font-bold px-4 py-2.5 rounded-xl">➕ Panel Agente</a>
+      <a href="index_captacion.html" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-bold px-4 py-2.5 rounded-xl transition shadow-lg">➕ Panel Agente</a>
     </div>
   </header>
 
@@ -19,8 +19,8 @@
     <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-6 shadow-xl">
       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div class="md:col-span-3">
-          <label class="block text-xs font-semibold text-slate-400 mb-1">Buscador Inteligente (Server-Side)</label>
-          <input type="text" id="inputBusqueda" oninput="buscarServerSide()" placeholder="Buscar ubicación, título..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm outline-none focus:border-emerald-500">
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Buscador Inteligente</label>
+          <input type="text" id="inputBusqueda" oninput="buscarServerSide()" placeholder="Buscar por título, ubicación, etc..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-200 text-sm outline-none focus:border-emerald-500">
         </div>
         <div>
           <label class="block text-xs font-semibold text-slate-400 mb-1">Operación</label>
@@ -37,75 +37,70 @@
       <div class="col-span-full text-center py-12 text-slate-500">Cargando catálogo...</div>
     </div>
 
-    <!-- Paginación -->
-    <div class="flex justify-between items-center pt-4 text-xs text-slate-400">
-      <button id="btnPrev" onclick="cambiarPagina(-1)" class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl disabled:opacity-50" disabled>Anterior</button>
+    <!-- Controles de Paginación -->
+    <div class="flex justify-between items-center pt-4 text-xs font-bold text-slate-400">
+      <button id="btnPrev" onclick="cambiarPagina(-1)" class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl disabled:opacity-50 hover:bg-slate-800 transition" disabled>← Anterior</button>
       <span id="labelPagina">Página 1</span>
-      <button id="btnNext" onclick="cambiarPagina(1)" class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl">Siguiente</button>
+      <button id="btnNext" onclick="cambiarPagina(1)" class="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl hover:bg-slate-800 transition">Siguiente →</button>
     </div>
   </main>
 
   <script>
-    const SUPABASE_URL = 'https://gvcklmqldswxfweliuio.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_Yu3I-FpcjU44dHsPs9pPDQ_9TEC9fKa';
-    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
+    const supabase = window.supabase.createClient('https://gvcklmqldswxfweliuio.supabase.co', 'sb_publishable_Yu3I-FpcjU44dHsPs9pPDQ_9TEC9fKa');
     let paginaActual = 0;
     const LIMITE = 12;
+    let timerDebounce;
 
     async function cargarCatalogoServerSide() {
       const query = document.getElementById('inputBusqueda').value.trim();
       const operacion = document.getElementById('selectOperacion').value;
-
       const from = paginaActual * LIMITE;
       const to = from + LIMITE - 1;
 
-      let consulta = supabaseClient
-        .from('inmuebles')
-        .select('id, codigo, titulo, precio, ubicacion, tipo_operacion, fotos, es_vip, es_verificado', { count: 'exact' })
+      let consulta = supabase.from('inmuebles')
+        .select('id, codigo, titulo, precio, ubicacion, tipo_operacion, fotos, es_vip, es_verificado, habitaciones, banos, estacionamientos', { count: 'exact' })
         .eq('estado', 'activo')
         .range(from, to)
         .order('es_vip', { ascending: false })
         .order('created_at', { ascending: false });
 
-      if (operacion !== 'Todos') {
-        consulta = consulta.eq('tipo_operacion', operacion);
-      }
-      if (query) {
-        consulta = consulta.ilike('titulo', `%${query}%`);
-      }
+      if (operacion !== 'Todos') consulta = consulta.eq('tipo_operacion', operacion);
+      if (query) consulta = consulta.ilike('titulo', `%${query}%`);
 
       const { data, count, error } = await consulta;
-
-      if (error) {
-        document.getElementById('gridInmuebles').innerHTML = `<div class="col-span-full text-center py-12 text-red-400">Error: ${error.message}</div>`;
-        return;
-      }
-
+      if (error) { document.getElementById('gridInmuebles').innerHTML = `<p class="text-red-400 p-4">Error: ${error.message}</p>`; return; }
+      
       renderizarGrid(data || []);
       actualizarPaginacion(count || 0);
     }
 
     function renderizarGrid(lista) {
       const container = document.getElementById('gridInmuebles');
-      if (lista.length === 0) {
-        container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">No hay inmuebles disponibles.</div>`;
-        return;
-      }
+      if (lista.length === 0) return container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-500">No se encontraron inmuebles.</div>`;
+      
       container.innerHTML = lista.map(item => {
         const foto = item.fotos && item.fotos.length > 0 ? item.fotos[0] : 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=600&auto=format&fit=crop';
         return `
-          <div class="bg-slate-900 border ${item.es_vip ? 'border-amber-500/50' : 'border-slate-800'} rounded-2xl overflow-hidden flex flex-col">
-            <div class="relative h-48 bg-slate-800">
-              <img src="${foto}" class="w-full h-full object-cover">
-              <span class="absolute top-3 left-3 bg-slate-950/80 text-emerald-400 font-bold px-2 py-1 rounded text-xs border border-slate-700">${item.tipo_operacion}</span>
-              <span class="absolute top-3 right-3 bg-emerald-500 text-slate-950 font-black px-2.5 py-1 rounded text-xs">$${Number(item.precio).toLocaleString()}</span>
+          <div class="bg-slate-900 border ${item.es_vip ? 'border-amber-500/50 shadow-amber-500/10 shadow-lg' : 'border-slate-800'} rounded-2xl overflow-hidden hover:border-slate-700 transition flex flex-col">
+            <div class="relative h-56 bg-slate-800">
+              <img src="${foto}" alt="${item.titulo}" class="w-full h-full object-cover">
+              <div class="absolute top-3 left-3 flex gap-2 flex-wrap">
+                <span class="bg-slate-950/80 text-emerald-400 font-bold px-2 py-1 rounded text-xs border border-slate-700">${item.tipo_operacion}</span>
+                ${item.es_vip ? '<span class="bg-amber-400 text-slate-950 font-black px-2 py-1 rounded text-xs shadow-lg">⭐ VIP</span>' : ''}
+                ${item.es_verificado ? '<span class="bg-blue-500 text-white font-bold px-2 py-1 rounded text-xs shadow-lg">✓ Verificado</span>' : ''}
+              </div>
+              <span class="absolute top-3 right-3 bg-emerald-500 text-slate-950 font-black px-3 py-1 rounded-lg text-sm">$${Number(item.precio).toLocaleString()}</span>
             </div>
-            <div class="p-4 flex-1 flex flex-col justify-between">
+            <div class="p-5 flex-1 flex flex-col justify-between">
               <div>
-                <span class="text-[10px] text-slate-500">${item.codigo}</span>
-                <h3 class="font-bold text-sm text-slate-100 line-clamp-1">${item.titulo}</h3>
-                <p class="text-slate-400 text-xs mt-1">${item.ubicacion}</p>
+                <div class="text-[10px] text-slate-500 mb-1">CÓD: ${item.codigo}</div>
+                <h3 class="font-bold text-base text-slate-100 line-clamp-1">${item.titulo}</h3>
+                <p class="text-slate-400 text-xs mt-1">📍 ${item.ubicacion}</p>
+              </div>
+              <div class="flex justify-between text-xs text-slate-400 mt-4 border-t border-slate-800 pt-3">
+                <span>🛏️ ${item.habitaciones || 0}</span>
+                <span>🚿 ${item.banos || 0}</span>
+                <span>🚗 ${item.estacionamientos || 0}</span>
               </div>
             </div>
           </div>
@@ -119,20 +114,9 @@
       document.getElementById('labelPagina').textContent = `Página ${paginaActual + 1} de ${Math.ceil(total / LIMITE) || 1}`;
     }
 
-    function cambiarPagina(delta) {
-      paginaActual += delta;
-      cargarCatalogoServerSide();
-    }
-
-    let timerDebounce;
-    function buscarServerSide() {
-      clearTimeout(timerDebounce);
-      timerDebounce = setTimeout(() => {
-        paginaActual = 0;
-        cargarCatalogoServerSide();
-      }, 300);
-    }
-
+    function cambiarPagina(delta) { paginaActual += delta; cargarCatalogoServerSide(); }
+    function buscarServerSide() { clearTimeout(timerDebounce); timerDebounce = setTimeout(() => { paginaActual = 0; cargarCatalogoServerSide(); }, 300); }
+    
     cargarCatalogoServerSide();
   </script>
 </body>
