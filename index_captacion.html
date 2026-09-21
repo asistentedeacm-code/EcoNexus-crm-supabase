@@ -9,14 +9,14 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-emerald-500 selection:text-slate-950">
 
-  <!-- Modal Autenticación Segura -->
+  <!-- Modal Autenticación -->
   <div id="modalAuth" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-50 flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-2xl p-8 shadow-2xl text-center space-y-6">
       <div class="space-y-2">
-        <h2 class="text-3xl font-black text-emerald-400 tracking-tight">EcoNexus</h2>
+        <h2 class="text-3xl font-black text-emerald-400">EcoNexus</h2>
         <p class="text-xs text-slate-400">Panel Exclusivo de Agentes Autenticados</p>
       </div>
-      <button id="btnGoogleLogin" class="w-full bg-white hover:bg-slate-200 text-slate-900 font-bold py-3.5 px-4 rounded-xl transition-all flex items-center justify-center gap-3 text-sm shadow-lg active:scale-95">
+      <button id="btnGoogleLogin" class="w-full bg-white hover:bg-slate-200 text-slate-900 font-bold py-3.5 px-4 rounded-xl transition flex items-center justify-center gap-3 text-sm shadow-lg active:scale-95">
         <svg class="w-5 h-5" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -34,125 +34,112 @@
       <h1 class="text-xl font-black text-emerald-400">EcoNexus <span class="text-xs font-normal text-slate-400">| Panel Agentes</span></h1>
       <div class="flex items-center gap-4">
         <span id="userInfo" class="text-xs font-mono text-slate-400 hidden bg-slate-950 px-2.5 py-1 rounded-lg border border-slate-800"></span>
-        <button id="btnCerrarSesion" class="hidden text-xs bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 px-3 py-1.5 rounded-lg transition active:scale-95">Salir</button>
-        <a href="index.html" class="text-xs text-slate-400 hover:text-emerald-400 transition flex items-center gap-1">← Catálogo</a>
+        <button id="btnCerrarSesion" class="hidden text-xs bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 px-3 py-1.5 rounded-lg transition">Salir</button>
+        <a href="index.html" class="text-xs text-slate-400 hover:text-emerald-400 transition">← Catálogo</a>
       </div>
     </div>
   </header>
 
   <!-- Main Container -->
   <main class="max-w-5xl mx-auto p-4 space-y-8 mt-4">
-    <!-- Formulario Captación -->
     <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6">
       <div class="border-b border-slate-800/80 pb-4">
         <h2 class="text-xl font-bold text-slate-100">Publicar Inmueble</h2>
-        <p class="text-xs text-slate-400 mt-0.5">Las imágenes se procesan localmente a WebP para maximizar la velocidad y ahorrar almacenamiento.</p>
+        <p class="text-xs text-slate-400 mt-0.5">Las imágenes se procesan localmente a WebP para maximizar la velocidad y ahorrar espacio.</p>
       </div>
 
       <form id="formInmueble" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="titulo" class="block text-xs font-semibold text-slate-400 mb-1">Título del Inmueble *</label>
-            <input type="text" id="titulo" placeholder="Ej: Apartamento Moderno en El Bosque" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500 transition">
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Título del Inmueble *</label>
+            <input type="text" id="titulo" placeholder="Ej: Apartamento Moderno en El Bosque" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label for="precio" class="block text-xs font-semibold text-slate-400 mb-1">Precio ($ USD) *</label>
-            <input type="number" id="precio" step="0.01" min="0" placeholder="Ej: 85000" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500 transition">
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Precio ($ USD) *</label>
+            <input type="number" id="precio" step="0.01" min="0" placeholder="Ej: 85000" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500">
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label for="tipo_operacion" class="block text-xs font-semibold text-slate-400 mb-1">Tipo de Operación *</label>
-            <select id="tipo_operacion" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500 transition cursor-pointer">
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Tipo de Operación *</label>
+            <select id="tipo_operacion" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500">
               <option value="Venta">Venta</option>
               <option value="Alquiler">Alquiler</option>
             </select>
           </div>
           <div>
-            <label for="ubicacion" class="block text-xs font-semibold text-slate-400 mb-1">Ubicación *</label>
-            <input type="text" id="ubicacion" placeholder="Ej: Valencia, Carabobo" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500 transition">
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Ubicación *</label>
+            <input type="text" id="ubicacion" placeholder="Ej: Valencia, Carabobo" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500">
           </div>
         </div>
 
-        <!-- Características adicionales -->
         <div class="grid grid-cols-3 gap-4">
           <div>
-            <label for="habitaciones" class="block text-xs font-semibold text-slate-400 mb-1">Habitaciones</label>
-            <input type="number" id="habitaciones" min="0" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500 transition">
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Habitaciones</label>
+            <input type="number" id="habitaciones" min="0" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label for="banos" class="block text-xs font-semibold text-slate-400 mb-1">Baños</label>
-            <input type="number" id="banos" min="0" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500 transition">
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Baños</label>
+            <input type="number" id="banos" min="0" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label for="estacionamientos" class="block text-xs font-semibold text-slate-400 mb-1">Estacionam.</label>
-            <input type="number" id="estacionamientos" min="0" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500 transition">
+            <label class="block text-xs font-semibold text-slate-400 mb-1">Estacionam.</label>
+            <input type="number" id="estacionamientos" min="0" value="1" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-slate-200 outline-none focus:border-emerald-500">
           </div>
         </div>
 
         <div>
-          <label for="inputFotos" class="block text-xs font-semibold text-slate-400 mb-1">Fotos del Inmueble (Máximo 5 imágenes) *</label>
+          <label class="block text-xs font-semibold text-slate-400 mb-1">Fotos del Inmueble (Máximo 5 imágenes) *</label>
           <input type="file" id="inputFotos" accept="image/*" multiple required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 cursor-pointer">
         </div>
 
-        <button type="submit" id="btnSubmit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-500/10 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+        <button type="submit" id="btnSubmit" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-3.5 rounded-xl transition shadow-lg active:scale-95 disabled:opacity-50">
           📤 Comprimir, Subir y Publicar
         </button>
       </form>
     </section>
 
-    <!-- Lista Mis Inmuebles -->
     <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
       <div class="flex justify-between items-center border-b border-slate-800/80 pb-3">
         <h3 class="text-lg font-bold text-slate-100">Mis Inmuebles Publicados</h3>
         <span class="text-[10px] bg-slate-950 border border-slate-800 text-slate-400 px-2.5 py-1 rounded-full">Filtrado por RLS</span>
       </div>
       <div id="listaMisInmuebles" class="space-y-3">
-        <div class="text-center py-6 text-slate-500 text-sm">Verificando sesión y permisos...</div>
+        <div class="text-center py-6 text-slate-500 text-sm">Cargando datos...</div>
       </div>
     </section>
   </main>
 
   <script>
-    // Inicialización del cliente Supabase
-    const SUPABASE_URL = 'https://gvcklmqldswxfweliuio.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_Yu3I-FpcjU44dHsPs9pPDQ_9TEC9fKa';
-    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const db = window.supabase.createClient(
+      'https://gvcklmqldswxfweliuio.supabase.co', 
+      'sb_publishable_Yu3I-FpcjU44dHsPs9pPDQ_9TEC9fKa'
+    );
 
     let usuarioActual = null;
 
-    // Helper Anti-XSS
     function escapeHTML(str) {
       if (!str) return '';
-      return String(str).replace(/[&<>"']/g, match => ({
-        '&': '&amp;',
-        '<': '&lt;',
-        '>': '&gt;',
-        '"': '&quot;',
-        "'": '&#39;'
-      })[match]);
+      return String(str).replace(/[&<>"']/g, m => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[m]);
     }
 
-    // Login & Logout
     async function loginGoogle() { 
+      // Redirección limpia sin parámetros adicionales
+      const cleanUrl = window.location.origin + window.location.pathname;
       await db.auth.signInWithOAuth({ 
         provider: 'google', 
-        options: { redirectTo: window.location.origin + '/index_captacion.html' }
+        options: { redirectTo: cleanUrl }
       }); 
     }
 
     async function logout() { 
       await db.auth.signOut(); 
-      window.location.reload(); 
+      window.location.href = window.location.pathname;
     }
 
-    // Motor de compresión optimizado a WebP
     async function comprimirImagenWebP(file, maxWidth = 1200, quality = 0.80) {
       return new Promise((resolve, reject) => {
-        if (!file.type.startsWith('image/')) {
-          return reject(new Error('El archivo no es una imagen válida.'));
-        }
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (e) => {
@@ -161,55 +148,41 @@
           img.onload = () => {
             const canvas = document.createElement('canvas');
             let w = img.width, h = img.height;
-            if (w > maxWidth) { 
-              h = Math.round((h * maxWidth) / w); 
-              w = maxWidth; 
-            }
-            canvas.width = w; 
-            canvas.height = h;
+            if (w > maxWidth) { h = Math.round((h * maxWidth) / w); w = maxWidth; }
+            canvas.width = w; canvas.height = h;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, w, h);
-            
             canvas.toBlob((blob) => {
-              if (!blob) return reject(new Error('Error al comprimir la imagen.'));
-              const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`;
-              resolve(new File([blob], fileName, { type: 'image/webp' }));
+              if (!blob) return reject(new Error('Error al comprimir'));
+              resolve(new File([blob], `${Date.now()}_${Math.random().toString(36).substring(7)}.webp`, { type: 'image/webp' }));
             }, 'image/webp', quality);
           };
-          img.onerror = () => reject(new Error('No se pudo procesar la imagen seleccionada.'));
         };
-        reader.onerror = () => reject(new Error('Error al leer el archivo del disco.'));
       });
     }
 
-    // Publicar inmueble
     async function publicarInmueble(e) {
       e.preventDefault();
-      if (!usuarioActual) return alert('Sesión expirada. Por favor recarga e inicia sesión.');
+      if (!usuarioActual) return alert('Sesión no encontrada');
 
       const btn = document.getElementById('btnSubmit');
-      const inputFiles = document.getElementById('inputFotos').files;
-      const files = Array.from(inputFiles).slice(0, 5);
-
-      if (files.length === 0) return alert('Por favor selecciona al menos 1 imagen.');
+      const files = Array.from(document.getElementById('inputFotos').files).slice(0, 5);
+      if (files.length === 0) return alert('Selecciona al menos una foto');
 
       btn.disabled = true;
       const fotosUrls = [];
 
       try {
-        // Step 1: Compresión y Carga de Fotos
         for (let i = 0; i < files.length; i++) {
-          btn.textContent = `⏳ Comprimiendo imagen ${i + 1} de ${files.length}...`;
+          btn.textContent = `⏳ Procesando imagen ${i + 1} de ${files.length}...`;
           const comprimido = await comprimirImagenWebP(files[i]);
-          
-          btn.textContent = `⏳ Subiendo imagen ${i + 1} de ${files.length}...`;
           const storagePath = `${usuarioActual.id}/${comprimido.name}`;
           
           const { error: storageError } = await db.storage
             .from('fotos-inmuebles')
             .upload(storagePath, comprimido, { cacheControl: '3600', upsert: false });
 
-          if (storageError) throw new Error(`Error en storage: ${storageError.message}`);
+          if (storageError) throw storageError;
 
           const { data: publicUrlData } = db.storage
             .from('fotos-inmuebles')
@@ -218,8 +191,7 @@
           fotosUrls.push(publicUrlData.publicUrl);
         }
 
-        // Step 2: Inserción en Base de Datos
-        btn.textContent = "⏳ Registrando inmueble...";
+        btn.textContent = "⏳ Guardando registro...";
         const payload = {
           user_id: usuarioActual.id,
           titulo: document.getElementById('titulo').value.trim(),
@@ -242,19 +214,15 @@
         alert('¡Inmueble publicado exitosamente!');
 
       } catch (err) {
-        console.error('Error durante la publicación:', err);
-        alert('Ocurrió un error: ' + err.message);
+        alert('Error: ' + err.message);
       } finally {
         btn.disabled = false;
         btn.textContent = "📤 Comprimir, Subir y Publicar";
       }
     }
 
-    // Cargar Inmuebles del Agente Autenticado (Protegido por RLS)
     async function cargarMisInmuebles() {
       const container = document.getElementById('listaMisInmuebles');
-      container.innerHTML = `<div class="text-center py-6 text-slate-500 text-xs">Cargando mis propiedades...</div>`;
-
       try {
         const { data, error } = await db.from('inmuebles')
           .select('id, codigo, titulo, precio, estado, created_at')
@@ -263,61 +231,47 @@
         if (error) throw error;
 
         if (!data || data.length === 0) {
-          container.innerHTML = `<p class="text-center py-6 text-slate-500 text-xs">No tienes inmuebles activos registrados.</p>`;
+          container.innerHTML = `<p class="text-center py-6 text-slate-500 text-xs">No tienes inmuebles publicados.</p>`;
           return;
         }
 
         container.innerHTML = data.map(item => `
-          <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 hover:border-slate-700 transition">
-            <div class="text-center md:text-left space-y-0.5">
+          <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-left">
               <span class="font-mono font-bold text-emerald-400 text-xs">${escapeHTML(item.codigo)}</span>
-              <h4 class="text-sm font-semibold text-slate-200 line-clamp-1">${escapeHTML(item.titulo)}</h4>
-              <p class="text-xs text-slate-400 font-medium">$${Number(item.precio || 0).toLocaleString()}</p>
+              <h4 class="text-sm font-semibold text-slate-200">${escapeHTML(item.titulo)}</h4>
+              <p class="text-xs text-slate-400">$${Number(item.precio || 0).toLocaleString()}</p>
             </div>
-            <button data-id="${item.id}" class="btn-borrar bg-red-500/10 text-red-400 border border-red-500/20 text-xs px-4 py-2 rounded-lg hover:bg-red-500/20 transition active:scale-95 flex items-center gap-1">
+            <button onclick="borrarInmueble('${item.id}')" class="bg-red-500/10 text-red-400 border border-red-500/20 text-xs px-4 py-2 rounded-lg hover:bg-red-500/20 transition">
               🗑️ Borrar
             </button>
           </div>
         `).join('');
 
-        // Delegación de eventos para botones de borrado seguros
-        document.querySelectorAll('.btn-borrar').forEach(btn => {
-          btn.addEventListener('click', (e) => {
-            const id = e.currentTarget.getAttribute('data-id');
-            borrarInmueble(id);
-          });
-        });
-
       } catch (err) {
-        console.error('Error al cargar inmuebles:', err.message);
-        container.innerHTML = `<p class="text-center py-4 text-red-400 text-xs">Error al consultar datos: ${escapeHTML(err.message)}</p>`;
+        container.innerHTML = `<p class="text-center py-4 text-red-400 text-xs">Error: ${escapeHTML(err.message)}</p>`;
       }
     }
 
-    // Borrado seguro (RLS valida que el registro le pertenezca al usuario)
     async function borrarInmueble(id) {
-      if (!confirm('¿Seguro que deseas eliminar este inmueble permanentemente?')) return;
-      
-      try {
-        const { error } = await db.from('inmuebles').delete().eq('id', id);
-        if (error) throw error;
-        await cargarMisInmuebles();
-      } catch (err) {
-        alert('Error al eliminar: ' + err.message);
-      }
+      if (!confirm('¿Eliminar este inmueble?')) return;
+      const { error } = await db.from('inmuebles').delete().eq('id', id);
+      if (error) alert('Error: ' + error.message);
+      else cargarMisInmuebles();
     }
 
-    // Control de Estado de Autenticación
-    async function initAuth() {
-      const { data: { session } } = await db.auth.getSession();
-      
-      const updateUI = (sess) => {
-        if (sess) {
-          usuarioActual = sess.user;
+    // Manejador Único de Autenticación
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btnGoogleLogin').addEventListener('click', loginGoogle);
+      document.getElementById('btnCerrarSesion').addEventListener('click', logout);
+      document.getElementById('formInmueble').addEventListener('submit', publicarInmueble);
+
+      db.auth.onAuthStateChange((event, session) => {
+        if (session) {
+          usuarioActual = session.user;
           document.getElementById('modalAuth').classList.add('hidden');
-          const userInfo = document.getElementById('userInfo');
-          userInfo.textContent = usuarioActual.email;
-          userInfo.classList.remove('hidden');
+          document.getElementById('userInfo').textContent = usuarioActual.email;
+          document.getElementById('userInfo').classList.remove('hidden');
           document.getElementById('btnCerrarSesion').classList.remove('hidden');
           cargarMisInmuebles();
         } else {
@@ -326,22 +280,7 @@
           document.getElementById('userInfo').classList.add('hidden');
           document.getElementById('btnCerrarSesion').classList.add('hidden');
         }
-      };
-
-      updateUI(session);
-
-      db.auth.onAuthStateChange((_event, session) => {
-        updateUI(session);
       });
-    }
-
-    // Event Listeners decoupled del HTML
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('btnGoogleLogin').addEventListener('click', loginGoogle);
-      document.getElementById('btnCerrarSesion').addEventListener('click', logout);
-      document.getElementById('formInmueble').addEventListener('submit', publicarInmueble);
-
-      initAuth();
     });
   </script>
 </body>
