@@ -7,137 +7,278 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
-  
-  <div id="authGate" class="fixed inset-0 bg-slate-950 z-[100] flex items-center justify-center p-4">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-amber-500 selection:text-slate-950">
+
+  <!-- Gatekeeper Autenticación -->
+  <div id="authGate" class="fixed inset-0 bg-slate-950/95 backdrop-blur-md z-[100] flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-amber-500/30 p-8 rounded-2xl max-w-sm w-full shadow-2xl text-center space-y-5">
-      <div class="w-14 h-14 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-2xl mx-auto">👑</div>
-      <h2 class="text-xl font-bold">Panel Admin EcoNexus</h2>
-      <p class="text-xs text-slate-400">Acceso protegido mediante RLS y Roles en PostgreSQL.</p>
-      <button onclick="loginGoogle()" class="w-full bg-white hover:bg-slate-200 text-slate-900 font-bold py-3 rounded-xl transition text-sm">
+      <div class="w-14 h-14 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-2xl mx-auto shadow-inner">👑</div>
+      <div class="space-y-1">
+        <h2 class="text-xl font-bold text-slate-100">Panel Admin EcoNexus</h2>
+        <p class="text-xs text-slate-400">Acceso verificado vía RLS en PostgreSQL.</p>
+      </div>
+      <button id="btnGoogleLogin" class="w-full bg-white hover:bg-slate-200 text-slate-900 font-bold py-3 px-4 rounded-xl transition-all flex items-center justify-center gap-3 text-sm shadow-lg active:scale-95">
+        <svg class="w-5 h-5" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
         Iniciar Sesión con Google
       </button>
-      <p id="msgError" class="text-xs text-red-400 hidden p-2 bg-red-500/10 rounded-lg border border-red-500/20"></p>
+      <p id="msgError" class="text-xs text-red-400 hidden p-3 bg-red-500/10 rounded-xl border border-red-500/20 text-left font-mono"></p>
     </div>
   </div>
 
-  <header class="border-b border-slate-800 bg-slate-900 p-4 sticky top-0 z-50">
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md p-4 sticky top-0 z-50">
     <div class="max-w-6xl mx-auto flex justify-between items-center">
-      <h1 class="text-lg font-black text-amber-400">👑 EcoNexus Admin</h1>
-      <button onclick="logout()" class="text-xs text-red-400 hover:underline">🔒 Cerrar Sesión</button>
+      <div class="flex items-center gap-3">
+        <h1 class="text-lg font-black text-amber-400 tracking-tight">👑 EcoNexus Admin</h1>
+        <span id="userBadge" class="text-[10px] font-mono bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded-md hidden"></span>
+      </div>
+      <button id="btnLogout" class="text-xs bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 px-3 py-1.5 rounded-lg transition active:scale-95">
+        🔒 Cerrar Sesión
+      </button>
     </div>
   </header>
 
+  <!-- Main Content -->
   <main class="max-w-6xl mx-auto p-4 space-y-6 mt-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4">
-      <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-        <h2 class="text-xl font-bold">Control General (Superusuario)</h2>
-        <input type="text" id="buscadorAdmin" oninput="buscarServerSide()" placeholder="🔍 Buscar por código o título..." class="w-full md:w-80 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs outline-none focus:border-amber-400">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-6">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-800/80 pb-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-100">Control General de Inmuebles</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Gestión con permisos elevados sobre catálogo global.</p>
+        </div>
+        <div class="w-full md:w-auto flex items-center gap-2">
+          <input type="text" id="buscadorAdmin" placeholder="🔍 Buscar por código o título..." class="w-full md:w-80 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs text-slate-200 outline-none focus:border-amber-400 transition">
+        </div>
       </div>
       
-      <div id="tablaInmueblesAdmin" class="space-y-3">
-        <div class="text-center py-8 text-slate-500 text-sm">Validando tu Rango (Role)...</div>
+      <!-- Tabla / Lista -->
+      <div id="tablaInmueblesAdmin" class="space-y-3 min-h-[300px]">
+        <div class="text-center py-12 text-slate-500 text-sm animate-pulse">Verificando credenciales de superusuario...</div>
       </div>
 
+      <!-- Paginador Server-Side -->
       <div class="flex justify-between items-center pt-4 border-t border-slate-800 text-xs text-slate-400 font-bold">
-        <button id="btnPrev" onclick="cambiarPagina(-1)" class="px-4 py-2 bg-slate-800 rounded-lg hover:bg-slate-700 transition disabled:opacity-50" disabled>Anterior</button>
-        <span id="labelPagina">Página 1</span>
-        <button id="btnNext" onclick="cambiarPagina(1)" class="px-4 py-2 bg-slate-800 rounded-lg hover:bg-slate-700 transition">Siguiente</button>
+        <button id="btnPrev" class="px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition disabled:opacity-40 disabled:hover:bg-slate-950 disabled:cursor-not-allowed">Anterior</button>
+        <span id="labelPagina" class="font-mono text-slate-300">Página 1</span>
+        <button id="btnNext" class="px-4 py-2 bg-slate-950 border border-slate-800 rounded-xl hover:bg-slate-800 hover:text-slate-200 transition disabled:opacity-40 disabled:hover:bg-slate-950 disabled:cursor-not-allowed">Siguiente</button>
       </div>
     </div>
   </main>
 
   <script>
-    const supabase = window.supabase.createClient('https://gvcklmqldswxfweliuio.supabase.co', 'sb_publishable_Yu3I-FpcjU44dHsPs9pPDQ_9TEC9fKa');
+    const SUPABASE_URL = 'https://gvcklmqldswxfweliuio.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Yu3I-FpcjU44dHsPs9pPDQ_9TEC9fKa';
+    const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
     let paginaActual = 0;
     const LIMITE = 15;
-    let timerDebounce;
+    let timerDebounce = null;
+    let sesionActiva = null;
 
-    async function loginGoogle() { await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } }); }
-    async function logout() { await supabase.auth.signOut(); window.location.reload(); }
+    // Sanitización anti-XSS
+    function escapeHTML(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, match => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[match]);
+    }
+
+    async function loginGoogle() {
+      await db.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + '/index_admin.html' }
+      });
+    }
+
+    async function logout() {
+      await db.auth.signOut();
+      window.location.reload();
+    }
 
     async function verificarAdmin() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+      const msg = document.getElementById('msgError');
+      msg.classList.add('hidden');
 
-      const { data: profile } = await supabase.from('profiles').select('role').eq('id', session.user.id).single();
+      const { data: { session }, error: sessionError } = await db.auth.getSession();
       
-      if (!profile || profile.role !== 'admin') {
-        const msg = document.getElementById('msgError');
-        msg.textContent = '⛔ Acceso denegado: Base de datos informa que tu cuenta es Rango "agente", no "admin".';
-        msg.classList.remove('hidden');
-        await supabase.auth.signOut();
+      if (sessionError || !session) {
+        document.getElementById('authGate').classList.remove('hidden');
         return;
       }
-      
+
+      sesionActiva = session;
+
+      // Consulta de rol basada en RLS
+      const { data: profile, error: profileError } = await db
+        .from('profiles')
+        .select('role, email')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError || !profile || profile.role !== 'admin') {
+        msg.textContent = '⛔ Acceso denegado: Tu perfil no cuenta con el rol "admin" en PostgreSQL.';
+        msg.classList.remove('hidden');
+        document.getElementById('authGate').classList.remove('hidden');
+        await db.auth.signOut();
+        return;
+      }
+
+      // Usuario verificado como Admin
       document.getElementById('authGate').classList.add('hidden');
+      const badge = document.getElementById('userBadge');
+      badge.textContent = escapeHTML(profile.email);
+      badge.classList.remove('hidden');
+
       cargarInmueblesPaginados();
     }
 
     async function cargarInmueblesPaginados() {
+      const cont = document.getElementById('tablaInmueblesAdmin');
       const queryBusqueda = document.getElementById('buscadorAdmin').value.trim();
       const from = paginaActual * LIMITE;
       const to = from + LIMITE - 1;
 
-      let consulta = supabase.from('inmuebles')
+      let consulta = db
+        .from('inmuebles')
         .select('id, codigo, titulo, precio, es_vip, es_verificado', { count: 'exact' })
-        .range(from, to).order('created_at', { ascending: false });
+        .range(from, to)
+        .order('created_at', { ascending: false });
 
-      if (queryBusqueda) consulta = consulta.ilike('titulo', `%${queryBusqueda}%`);
+      if (queryBusqueda) {
+        // Búsqueda multi-campo Server-Side
+        consulta = consulta.or(`titulo.ilike.%${queryBusqueda}%,codigo.ilike.%${queryBusqueda}%`);
+      }
 
       const { data, count, error } = await consulta;
-      if (error) return document.getElementById('tablaInmueblesAdmin').innerHTML = `<p class="text-red-400">Error: ${error.message}</p>`;
-      
+
+      if (error) {
+        cont.innerHTML = `<div class="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-xs font-mono">Error al consultar datos: ${escapeHTML(error.message)}</div>`;
+        return;
+      }
+
       renderizarTabla(data || []);
       actualizarPaginacion(count || 0);
     }
 
     function renderizarTabla(items) {
       const cont = document.getElementById('tablaInmueblesAdmin');
-      if (items.length === 0) return cont.innerHTML = `<p class="text-center py-6 text-slate-500">No hay datos.</p>`;
-      
+      if (items.length === 0) {
+        cont.innerHTML = `<div class="text-center py-12 text-slate-500 text-xs">No se encontraron inmuebles registrados.</div>`;
+        return;
+      }
+
       cont.innerHTML = items.map(i => `
-        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4">
-          <div class="text-center md:text-left">
+        <div class="bg-slate-950 border border-slate-800 p-4 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4 hover:border-slate-700 transition">
+          <div class="text-center md:text-left space-y-1">
             <div class="flex items-center gap-2 justify-center md:justify-start">
-                <span class="font-bold text-emerald-400 text-sm">${i.codigo}</span>
-                ${i.es_vip ? '<span class="bg-amber-400 text-slate-950 font-black px-2 py-0.5 rounded text-[10px]">VIP</span>' : ''}
-                ${i.es_verificado ? '<span class="bg-blue-500 text-white font-bold px-2 py-0.5 rounded text-[10px]">VERIFICADO</span>' : ''}
+              <span class="font-mono font-bold text-emerald-400 text-xs">${escapeHTML(i.codigo)}</span>
+              ${i.es_vip ? '<span class="bg-amber-400/10 text-amber-400 border border-amber-400/20 font-black px-2 py-0.5 rounded text-[10px]">VIP</span>' : ''}
+              ${i.es_verificado ? '<span class="bg-blue-500/10 text-blue-400 border border-blue-500/20 font-bold px-2 py-0.5 rounded text-[10px]">VERIFICADO</span>' : ''}
             </div>
-            <h4 class="text-sm font-semibold text-slate-200 mt-1">${i.titulo}</h4>
-            <p class="text-xs text-slate-500">$${Number(i.precio).toLocaleString()}</p>
+            <h4 class="text-sm font-semibold text-slate-200 line-clamp-1">${escapeHTML(i.titulo)}</h4>
+            <p class="text-xs text-slate-400 font-mono">$${Number(i.precio || 0).toLocaleString()}</p>
           </div>
+
           <div class="flex items-center gap-2 flex-wrap justify-center">
-            <button onclick="toggleAction('${i.id}', 'es_vip', ${!i.es_vip})" class="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs px-3 py-2 rounded-lg font-bold">${i.es_vip ? 'Quitar VIP' : 'Dar VIP'}</button>
-            <button onclick="toggleAction('${i.id}', 'es_verificado', ${!i.es_verificado})" class="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs px-3 py-2 rounded-lg font-bold">${i.es_verificado ? 'Quitar Check' : 'Verificar'}</button>
-            <button onclick="eliminarAccion('${i.id}')" class="bg-red-500/10 text-red-400 hover:bg-red-500/30 text-xs px-3 py-2 rounded-lg font-bold">🗑️ Borrar</button>
+            <button data-id="${i.id}" data-campo="es_vip" data-valor="${!i.es_vip}" class="btn-toggle bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 text-xs px-3 py-1.5 rounded-lg font-semibold transition active:scale-95">
+              ${i.es_vip ? 'Quitar VIP' : 'Dar VIP'}
+            </button>
+            <button data-id="${i.id}" data-campo="es_verificado" data-valor="${!i.es_verificado}" class="btn-toggle bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 text-xs px-3 py-1.5 rounded-lg font-semibold transition active:scale-95">
+              ${i.es_verificado ? 'Quitar Check' : 'Verificar'}
+            </button>
+            <button data-id="${i.id}" class="btn-eliminar bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs px-3 py-1.5 rounded-lg font-semibold transition active:scale-95">
+              🗑️ Borrar
+            </button>
           </div>
         </div>
       `).join('');
+
+      // Delegación de Eventos Segura
+      document.querySelectorAll('.btn-toggle').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const el = e.currentTarget;
+          toggleAction(el.getAttribute('data-id'), el.getAttribute('data-campo'), el.getAttribute('data-valor') === 'true');
+        });
+      });
+
+      document.querySelectorAll('.btn-eliminar').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          eliminarAccion(id);
+        });
+      });
     }
 
     async function toggleAction(id, campo, valor) {
-      await supabase.from('inmuebles').update({ [campo]: valor }).eq('id', id);
-      cargarInmueblesPaginados();
+      const { error } = await db.from('inmuebles').update({ [campo]: valor }).eq('id', id);
+      if (error) {
+        alert('Error al actualizar registro: ' + error.message);
+      } else {
+        cargarInmueblesPaginados();
+      }
     }
 
     async function eliminarAccion(id) {
-      if (!confirm('¿Eliminar registro permanentemente (Bypass de Admin)?')) return;
-      await supabase.from('inmuebles').delete().eq('id', id);
-      cargarInmueblesPaginados();
+      if (!confirm('¿Confirmas la eliminación permanente de este registro?')) return;
+      const { error } = await db.from('inmuebles').delete().eq('id', id);
+      if (error) {
+        alert('Error al eliminar registro: ' + error.message);
+      } else {
+        cargarInmueblesPaginados();
+      }
     }
 
     function actualizarPaginacion(totalCount) {
-      document.getElementById('btnPrev').disabled = paginaActual === 0;
-      document.getElementById('btnNext').disabled = (paginaActual + 1) * LIMITE >= totalCount;
-      document.getElementById('labelPagina').textContent = `Página ${paginaActual + 1} de ${Math.ceil(totalCount / LIMITE) || 1}`;
+      const btnPrev = document.getElementById('btnPrev');
+      const btnNext = document.getElementById('btnNext');
+      const label = document.getElementById('labelPagina');
+
+      const totalPaginas = Math.ceil(totalCount / LIMITE) || 1;
+      btnPrev.disabled = paginaActual === 0;
+      btnNext.disabled = (paginaActual + 1) * LIMITE >= totalCount;
+
+      label.textContent = `Página ${paginaActual + 1} de ${totalPaginas}`;
     }
 
-    function cambiarPagina(delta) { paginaActual += delta; cargarInmueblesPaginados(); }
-    function buscarServerSide() { clearTimeout(timerDebounce); timerDebounce = setTimeout(() => { paginaActual = 0; cargarInmueblesPaginados(); }, 300); }
+    // Event Listeners y Debounce
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('btnGoogleLogin').addEventListener('click', loginGoogle);
+      document.getElementById('btnLogout').addEventListener('click', logout);
 
-    supabase.auth.onAuthStateChange(() => verificarAdmin());
-    verificarAdmin();
+      document.getElementById('btnPrev').addEventListener('click', () => {
+        if (paginaActual > 0) {
+          paginaActual--;
+          cargarInmueblesPaginados();
+        }
+      });
+
+      document.getElementById('btnNext').addEventListener('click', () => {
+        paginaActual++;
+        cargarInmueblesPaginados();
+      });
+
+      document.getElementById('buscadorAdmin').addEventListener('input', () => {
+        clearTimeout(timerDebounce);
+        timerDebounce = setTimeout(() => {
+          paginaActual = 0;
+          cargarInmueblesPaginados();
+        }, 300);
+      });
+
+      // Verificación inicial de sesión
+      verificarAdmin();
+
+      db.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+          verificarAdmin();
+        }
+      });
+    });
   </script>
 </body>
 </html>
